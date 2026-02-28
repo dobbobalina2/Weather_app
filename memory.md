@@ -175,3 +175,11 @@
 - Fix: Switched lint script to `eslint . --max-warnings=0`, installed `eslint` + `eslint-config-next`, and added `eslint.config.mjs`.
 - Status: Resolved.
 - Antipattern: Treating linting as a framework subcommand concern instead of owning a first-class ESLint configuration in the repo.
+
+### Bug: Playwright assertions failed due hidden responsive duplicates
+- Context: Expanding e2e tests for chart rendering and daily fallback views.
+- Symptom: Text assertions for `Weather Trend` and `Daily summary` failed even though content existed, because first matched nodes were hidden by responsive classes.
+- Root cause: Locators used generic text matching without visibility constraints in a layout that renders both mobile and desktop DOM branches.
+- Fix: Switched assertions to `:visible` selectors and visible chart-SVG counts.
+- Status: Resolved.
+- Antipattern: Using broad text locators in responsive UIs with parallel hidden/visible DOM trees; prefer visibility-scoped assertions.
