@@ -100,5 +100,8 @@ Server route returns typed error payloads:
 ## Repo Practices
 - Keep implementation files under 500 LOC when practical.
 - Prefer deterministic, reusable logic in `lib/` over component-local duplication.
+- Put reproducible logic in reusable modules/components, not in ad-hoc inline code.
 - Update `memory.md` whenever a blocker or bug is encountered, including anti-pattern notes.
-- Avoid workaround hacks when blocked; surface blockers clearly.
+- Avoid workaround hacks when blocked; stop and ask before implementing a workaround.
+- Do not manually edit `package.json` or lockfiles for dependency changes; use npm commands.
+- Any weight or threshold changes in scoring should update tests in `tests/scoring.test.ts`.

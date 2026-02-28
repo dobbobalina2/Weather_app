@@ -4,9 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 
 import type { CompareViewModel } from "@/types/weather";
 
-export interface ForecastError {
+export class ForecastError extends Error {
   code: string;
-  message: string;
+
+  constructor(code: string, message: string) {
+    super(message);
+    this.code = code;
+  }
 }
 
 export function useForecast(params: {
@@ -30,10 +34,10 @@ export function useForecast(params: {
         const payload = (await response.json().catch(() => null)) as
           | { error?: { code?: string; message?: string } }
           | null;
-        throw {
-          code: payload?.error?.code ?? "UNKNOWN",
-          message: payload?.error?.message ?? "Unable to fetch forecast"
-        } satisfies ForecastError;
+        throw new ForecastError(
+          payload?.error?.code ?? "UNKNOWN",
+          payload?.error?.message ?? "Unable to fetch forecast"
+        );
       }
 
       return (await response.json()) as CompareViewModel;

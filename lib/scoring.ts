@@ -290,7 +290,10 @@ export function deriveComparisonRecommendation(args: {
   const thisWeekSeverity = decisionSeverity(args.thisWeek.decision.level);
   const nextWeekSeverity = decisionSeverity(args.nextWeek.decision.level);
 
-  if ((thisWeekSeverity > nextWeekSeverity && args.nextWeek.decision.level !== "cancel") || nextWeekClearlyBetter) {
+  if (
+    args.nextWeek.decision.level !== "cancel" &&
+    (thisWeekSeverity > nextWeekSeverity || nextWeekClearlyBetter)
+  ) {
     return {
       level: "reschedule",
       label: "Recommend Reschedule",
