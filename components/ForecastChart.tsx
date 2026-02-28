@@ -52,7 +52,7 @@ export function ForecastChart({ hours, accent, dailyFallback }: Props) {
     return (
       <section className="chart-shell">
         <div className="rounded-2xl border border-[#2f364333] px-3 py-3 text-[#42506a]">
-          <p className="text-sm font-extrabold uppercase tracking-[0.06em]">Daily summary fallback</p>
+          <p className="text-sm font-extrabold uppercase tracking-[0.06em]">Daily summary</p>
           {dailyFallback ? (
             <div className="mt-2 grid gap-2 text-sm font-semibold md:grid-cols-2">
               <p>Temp {Math.round(dailyFallback.tempMinF)}-{Math.round(dailyFallback.tempMaxF)}F</p>
