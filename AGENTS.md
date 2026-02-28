@@ -104,4 +104,5 @@ Server route returns typed error payloads:
 - Update `memory.md` whenever a blocker or bug is encountered, including anti-pattern notes.
 - Avoid workaround hacks when blocked; stop and ask before implementing a workaround.
 - Do not manually edit `package.json` or lockfiles for dependency changes; use npm commands.
+- Do not use Turbopack for dev or build scripts in this repo; use Webpack (`next dev --webpack`, `next build --webpack`).
 - Any weight or threshold changes in scoring should update tests in `tests/scoring.test.ts`.

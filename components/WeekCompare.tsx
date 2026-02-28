@@ -262,11 +262,11 @@ function PanelHeader({ title, slice }: { title: string; slice: OccurrenceSlice }
             <Wind className="h-4 w-4" /> peak {Math.round(slice.metrics.peakWindMph)} mph
           </p>
           <p className="hidden text-sm font-semibold md:block md:text-[18px]">
-            {Math.round(slice.metrics.peakPrecipProb)}% rain chance, {slice.metrics.totalPrecipIn.toFixed(1)}" precip
+            {Math.round(slice.metrics.peakPrecipProb)}% rain chance, {slice.metrics.totalPrecipIn.toFixed(1)} in precip
           </p>
           {showSnow && (
             <p className="hidden items-center gap-1 text-sm font-semibold md:flex md:text-[18px]">
-              <Snowflake className="h-4 w-4" /> {slice.metrics.snowIn.toFixed(1)}" snow, {slice.metrics.snowDepthIn.toFixed(1)}" depth
+              <Snowflake className="h-4 w-4" /> {slice.metrics.snowIn.toFixed(1)} in snow, {slice.metrics.snowDepthIn.toFixed(1)} in depth
             </p>
           )}
           {(slice.metrics.sunriseLabel || slice.metrics.sunsetLabel) && (

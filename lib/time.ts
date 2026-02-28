@@ -13,19 +13,15 @@ const DAY_INDEX: Record<DayOfWeek, number> = {
 };
 
 const WINDOW_PRESETS: Record<TimeWindowPreset, TimeWindow> = {
-  morning: { startHour: 9, endHour: 12, label: "Morning" },
-  afternoon: { startHour: 14, endHour: 18, label: "Afternoon" },
-  evening: { startHour: 18, endHour: 21, label: "Evening" }
+  morning: { startHour: 9, endHour: 12 },
+  afternoon: { startHour: 14, endHour: 18 },
+  evening: { startHour: 18, endHour: 21 }
 };
 
 const FALLBACK_ZONE = "UTC";
 
 export function getWindowPreset(window: TimeWindowPreset): TimeWindow {
   return WINDOW_PRESETS[window];
-}
-
-export function getWindowLabel(window: TimeWindowPreset): string {
-  return WINDOW_PRESETS[window].label;
 }
 
 export function safeZone(zone?: string): string {

@@ -56,7 +56,7 @@ export function ForecastChart({ hours, accent, dailyFallback }: Props) {
           {dailyFallback ? (
             <div className="mt-2 grid gap-2 text-sm font-semibold md:grid-cols-2">
               <p>Temp {Math.round(dailyFallback.tempMinF)}-{Math.round(dailyFallback.tempMaxF)}F</p>
-              <p>Rain {Math.round(dailyFallback.precipProb)}% ({dailyFallback.precipIn.toFixed(1)}")</p>
+              <p>Rain {Math.round(dailyFallback.precipProb)}% ({dailyFallback.precipIn.toFixed(1)} in)</p>
               <p>Wind {Math.round(dailyFallback.windMph)} mph</p>
               <p className="truncate">{dailyFallback.conditions}</p>
             </div>

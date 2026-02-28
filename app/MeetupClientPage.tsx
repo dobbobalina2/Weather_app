@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Cloud } from "lucide-react";
 
@@ -35,11 +35,11 @@ export default function MeetupClientPage() {
   const searchParams = useSearchParams();
   const searchParamsString = searchParams.toString();
 
-  const resolvedInitial = useMemo(
+  const config = useMemo(
     () => configFromQuery(new URLSearchParams(searchParamsString)),
     [searchParamsString]
   );
-  const initialWeekOffset = useMemo(() => {
+  const weekOffset = useMemo(() => {
     const value = Number(searchParams.get("weekOffset") ?? "0");
     if (Number.isNaN(value)) {
       return 0;
@@ -47,29 +47,10 @@ export default function MeetupClientPage() {
     return Math.min(8, Math.max(0, Math.trunc(value)));
   }, [searchParams]);
 
-  const [config, setConfig] = useState<MeetupConfig>(() => resolvedInitial);
-  const [weekOffset, setWeekOffset] = useState<number>(() => initialWeekOffset);
-
-  useEffect(() => {
-    setConfig((previousConfig) => {
-      if (
-        previousConfig.location === resolvedInitial.location &&
-        previousConfig.day === resolvedInitial.day &&
-        previousConfig.window === resolvedInitial.window
-      ) {
-        return previousConfig;
-      }
-
-      return resolvedInitial;
-    });
-    setWeekOffset(initialWeekOffset);
-  }, [resolvedInitial, initialWeekOffset]);
-
   const query = useForecast({ ...config, weekOffset });
   const hasInvalidLocationError = query.error?.code === "UPSTREAM_BAD_REQUEST";
 
   const applyConfig = (nextConfig: MeetupConfig) => {
-    setConfig(nextConfig);
     const params = new URLSearchParams({
       location: nextConfig.location,
       day: nextConfig.day,
@@ -80,7 +61,6 @@ export default function MeetupClientPage() {
   };
 
   const changeWeekOffset = (nextOffset: number) => {
-    setWeekOffset(nextOffset);
     const params = new URLSearchParams({
       location: config.location,
       day: config.day,

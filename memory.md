@@ -142,12 +142,36 @@
 - Context: Running `npm test` after adding weather decision support for feels-like/snow/sun events.
 - Symptom: Vitest starts, then every worker fails with `ERR_REQUIRE_ESM` from `html-encoding-sniffer` requiring `@exodus/bytes/encoding-lite.js`.
 - Root cause: Dependency graph module-format mismatch in the current local test runtime (worker bootstrap failure before project tests execute).
-- Status: Unresolved in this pass; full test suite validation blocked.
+- Status: Resolved in later audit pass by pinning `jsdom` to `26.1.0`.
 - Antipattern: Assuming feature-code regressions when failures occur during worker/bootstrap dependency loading before any app test executes.
 
 ### Blocker: Lint script no longer valid with current Next CLI
 - Context: Running `npm run lint` as part of feature validation.
 - Symptom: Script exits with `Invalid project directory provided, no such directory: .../Weather_app/lint`.
 - Root cause: `next lint` is not accepted in the current Next CLI behavior for this project/version combination; the subcommand is treated as a path argument.
-- Status: Unresolved in this pass; lint verification blocked without script/config adjustment.
+- Status: Resolved in later audit pass by migrating to direct ESLint config/script.
 - Antipattern: Keeping legacy `next lint` scripts after major Next upgrades without confirming CLI support and command semantics.
+
+### Bug: Vitest worker bootstrap incompatibility with `jsdom@28` on local Node runtime
+- Context: Full test run during final interview-readiness audit.
+- Symptom: All test workers failed before execution with `ERR_REQUIRE_ESM` via `html-encoding-sniffer` requiring `@exodus/bytes/encoding-lite.js`.
+- Root cause: `jsdom@28` dependency stack expects newer Node engine behavior than current local runtime.
+- Fix: Pinned `jsdom` to `26.1.0` via npm.
+- Status: Resolved.
+- Antipattern: Upgrading infra dependencies (test runners/DOM envs) without checking their engine requirements against the pinned Node runtime.
+
+### Bug: Build path defaulted to Turbopack despite repo preference and resource constraints
+- Context: Build verification during the same audit.
+- Symptom: `next build` used Turbopack by default; user requirement is to avoid Turbopack due memory usage.
+- Root cause: `scripts.build` still pointed to plain `next build`, which resolves to Turbopack on Next 16.
+- Fix: Set `scripts.build` to `next build --webpack` and removed `dev:turbo`.
+- Status: Resolved.
+- Antipattern: Leaving optional high-resource runtimes available in scripts when the team has already standardized on a lower-resource baseline.
+
+### Bug: Lint workflow broken for Next 16 CLI
+- Context: Audit verification pipeline (`lint`, `typecheck`, `test`, `build`).
+- Symptom: `next lint` no longer works as a stable lint entrypoint in this project; command interpreted as invalid directory.
+- Root cause: Legacy script and missing ESLint flat config after framework/tooling changes.
+- Fix: Switched lint script to `eslint . --max-warnings=0`, installed `eslint` + `eslint-config-next`, and added `eslint.config.mjs`.
+- Status: Resolved.
+- Antipattern: Treating linting as a framework subcommand concern instead of owning a first-class ESLint configuration in the repo.

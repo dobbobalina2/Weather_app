@@ -14,7 +14,6 @@ export interface MeetupConfig {
 export interface TimeWindow {
   startHour: number;
   endHour: number;
-  label: string;
 }
 
 export interface ForecastHour {

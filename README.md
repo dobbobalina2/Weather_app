@@ -6,10 +6,9 @@ A Next.js App Router prototype that helps an organizer compare recurring meetup 
 - Freeform location + day + time-window controls
 - Visual Crossing Timeline API integration through server proxy
 - Side-by-side comparison for this occurrence and next occurrence
-- Recommendation engine (`Proceed`, `Caution`, `Cancel`) with explainability reasons
-- Scrollable hourly chart with Temp/Rain/Wind toggles
+- Balanced recommendation engine (`Proceed`, `Caution`, `Cancel`) plus weighted comparison (`Proceed`, `Caution`, `Reschedule`)
+- Hourly trend chart (temperature, rain probability, precipitation amount)
 - Loading skeletons, retryable errors, and daily-summary fallback when hourly data is unavailable
-- Copy-to-clipboard summary for sharing in chat
 
 ## Setup
 1. Install dependencies:
@@ -33,7 +32,9 @@ A Next.js App Router prototype that helps an organizer compare recurring meetup 
 - `npm run dev` - run local development server
 - `npm run build` - production build
 - `npm run start` - run production server
+- `npm run lint` - run ESLint checks
 - `npm test` - run Vitest suite
+- `npm run test:e2e` - run Playwright smoke tests
 
 ## API Route
 `GET /api/forecast?location=...&day=fri&window=afternoon`
