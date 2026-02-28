@@ -121,10 +121,10 @@ export function MeetupControls({ config, errorMessage, onApply }: Props) {
   return (
     <form className="px-1 py-2 md:px-2 md:py-3" onSubmit={submit}>
       <div className="pb-3 md:pb-4">
-        <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto] lg:items-center">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-center">
           <label className="min-w-0" htmlFor="location-input">
             <span className="sr-only">Location</span>
-            <div className="flex items-center gap-2 border-b border-[#2f36434a] px-1 py-2">
+            <div className="flex h-10 items-center gap-2 border-b border-[#2f36434a] px-1">
               <MapPin className="h-5 w-5 shrink-0 text-[#3d4761]" strokeWidth={2.3} />
               <input
                 className="w-full min-w-0 appearance-none border-none bg-transparent text-[15px] font-semibold text-[#364058] placeholder:text-[#7f8799] focus:outline-none md:text-[16px]"
@@ -134,19 +134,19 @@ export function MeetupControls({ config, errorMessage, onApply }: Props) {
                 value={localConfig.location}
                 onChange={(event) => setLocalConfig((prev) => ({ ...prev, location: event.target.value }))}
               />
+              <button
+                className="inline-flex h-7 shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs font-bold text-[#4a5771] hover:bg-[#2f364312] hover:text-[#2f3951] disabled:opacity-50 md:text-sm"
+                onClick={handleUseCurrentLocation}
+                type="button"
+                disabled={isLocating}
+              >
+                <Crosshair className="h-3.5 w-3.5" />
+                <span className="hidden lg:inline">{isLocating ? "Finding..." : "Current"}</span>
+              </button>
             </div>
-            <button
-              className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-[#4a5771] hover:text-[#2f3951] disabled:opacity-50 md:text-sm"
-              onClick={handleUseCurrentLocation}
-              type="button"
-              disabled={isLocating}
-            >
-              <Crosshair className="h-3.5 w-3.5" />
-              <span>{isLocating ? "Finding location..." : "Use current location"}</span>
-            </button>
           </label>
 
-          <label className="flex items-center gap-2 border-b border-[#2f36434a] px-1 py-2 text-[15px] font-bold text-[#2f3951] md:text-[16px]">
+          <label className="flex h-10 items-center gap-2 border-b border-[#2f36434a] px-1 text-[15px] font-bold text-[#2f3951] md:text-[16px]">
             <Clock3 className="h-4 w-4 shrink-0" />
             <span className="whitespace-nowrap">Every</span>
             <select
@@ -162,7 +162,7 @@ export function MeetupControls({ config, errorMessage, onApply }: Props) {
             </select>
           </label>
 
-          <label className="flex items-center border-b border-[#2f36434a] px-1 py-2 text-[15px] font-bold text-[#2f3951] md:text-[16px]">
+          <label className="flex h-10 items-center border-b border-[#2f36434a] px-1 text-[15px] font-bold text-[#2f3951] md:text-[16px]">
             <span className="sr-only">Time window</span>
             <select
               className="rounded-md border-none bg-transparent pr-2 text-[15px] font-bold text-[#2f3951] focus:outline-none md:text-[16px]"

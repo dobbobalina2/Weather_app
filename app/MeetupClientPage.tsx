@@ -66,6 +66,7 @@ export default function MeetupClientPage() {
   }, [resolvedInitial, initialWeekOffset]);
 
   const query = useForecast({ ...config, weekOffset });
+  const hasInvalidLocationError = query.error?.code === "UPSTREAM_BAD_REQUEST";
 
   const applyConfig = (nextConfig: MeetupConfig) => {
     setConfig(nextConfig);
@@ -121,7 +122,9 @@ export default function MeetupClientPage() {
 
       {query.error && query.data && <ErrorState message={query.error.message} onRetry={() => query.refetch()} />}
 
-      {query.data && <WeekCompare data={query.data} weekOffset={weekOffset} onChangeWeekOffset={changeWeekOffset} />}
+      {query.data && !hasInvalidLocationError && (
+        <WeekCompare data={query.data} weekOffset={weekOffset} onChangeWeekOffset={changeWeekOffset} />
+      )}
     </main>
   );
 }

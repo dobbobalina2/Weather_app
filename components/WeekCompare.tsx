@@ -60,12 +60,12 @@ export function WeekCompare({ data, weekOffset, onChangeWeekOffset }: Props) {
   );
   const mobileSlice = useMemo(
     () => ({
-      title: weekOffset === 0 ? `This ${weekday}` : `${weekday} (Week +${weekOffset})`,
+      title: `This ${weekday}`,
       value: data.thisOccurrence,
       background: "bg-[#b7dfca]",
       accent: "green" as const
     }),
-    [data.thisOccurrence, weekday, weekOffset]
+    [data.thisOccurrence, weekday]
   );
 
   const goMobilePrevious = () => {
@@ -112,8 +112,10 @@ export function WeekCompare({ data, weekOffset, onChangeWeekOffset }: Props) {
 
   return (
     <section className="space-y-3">
-      <div className="flex items-center">
-        <h2 className="text-2xl font-extrabold tracking-tight text-[#1e2a40] md:text-[50px]">Weather Comparison</h2>
+      <div className="flex min-w-0 items-center">
+        <h2 className="w-full truncate text-2xl font-extrabold tracking-tight text-[#1e2a40] md:text-[50px]">
+          {data.resolvedAddress}
+        </h2>
       </div>
 
       <div className="grid grid-cols-[36px_minmax(0,1fr)_36px] items-stretch gap-2 md:hidden">
