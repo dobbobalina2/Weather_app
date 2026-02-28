@@ -1,0 +1,50 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - img [ref=e6]
+      - generic [ref=e8]:
+        - heading "Weather Planner" [level=1] [ref=e9]
+        - paragraph [ref=e10]: Compare weekly event conditions
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - heading "Event Settings" [level=2] [ref=e13]
+        - button "Updating..." [ref=e14]
+      - generic [ref=e15]:
+        - generic [ref=e16]: Event Location
+        - generic [ref=e17]:
+          - img [ref=e19]
+          - textbox "Event Location" [ref=e22]:
+            - /placeholder: San Francisco, CA
+            - text: San Francisco, CA
+      - generic [ref=e23]:
+        - paragraph [ref=e24]: Event Day
+        - generic [ref=e25]:
+          - button "Monday" [ref=e26]: Mon
+          - button "Tuesday" [ref=e27]: Tue
+          - button "Wednesday" [ref=e28]: Wed
+          - button "Thursday" [ref=e29]: Thu
+          - button "Friday" [ref=e30]: Fri
+          - button "Saturday" [ref=e31]: Sat
+          - button "Sunday" [ref=e32]: Sun
+      - generic [ref=e33]:
+        - paragraph [ref=e34]: Time Range
+        - generic [ref=e35]:
+          - button "Morning 6 AM - 12 PM" [ref=e36]:
+            - generic [ref=e37]: Morning
+            - generic [ref=e38]: 6 AM - 12 PM
+          - button "Afternoon 12 PM - 6 PM" [ref=e39]:
+            - generic [ref=e40]: Afternoon
+            - generic [ref=e41]: 12 PM - 6 PM
+          - button "Evening 6 PM - 12 AM" [ref=e42]:
+            - generic [ref=e43]: Evening
+            - generic [ref=e44]: 6 PM - 12 AM
+          - generic [ref=e45]:
+            - generic [ref=e46]: All Day
+            - generic [ref=e47]: 6 AM - 12 AM
+      - paragraph [ref=e48]: "Examples: Seattle, WA, 94105, 40.7128,-74.0060"
+    - generic [ref=e70]:
+      - heading "Demo Mode" [level=3] [ref=e71]
+      - paragraph [ref=e72]: Using simulated data. Connect Visual Crossing API for live forecasts.
+  - button "Open Next.js Dev Tools" [ref=e78] [cursor=pointer]:
+    - img [ref=e79]
+  - alert [ref=e82]

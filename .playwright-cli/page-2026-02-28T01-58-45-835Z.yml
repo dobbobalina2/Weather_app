@@ -1,0 +1,52 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]: ☁
+        - generic [ref=e6]:
+          - heading "Weather Planner" [level=1] [ref=e7]
+          - paragraph [ref=e8]: Compare weekly event conditions
+      - button "Copy Summary" [ref=e9]
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - heading "Event Settings" [level=2] [ref=e12]
+        - button "Updating..." [ref=e13]
+      - generic [ref=e14]:
+        - generic [ref=e15]: Location
+        - generic [ref=e16]:
+          - generic [ref=e17]: 📍
+          - textbox "Location" [ref=e18]:
+            - /placeholder: San Francisco, CA
+            - text: San Francisco, CA
+      - generic [ref=e19]:
+        - paragraph [ref=e20]: Event Day
+        - generic [ref=e21]:
+          - button "Monday" [ref=e22]: Mon
+          - button "Tuesday" [ref=e23]: Tue
+          - button "Wednesday" [ref=e24]: Wed
+          - button "Thursday" [ref=e25]: Thu
+          - button "Friday" [ref=e26]: Fri
+          - button "Saturday" [ref=e27]: Sat
+          - button "Sunday" [ref=e28]: Sun
+      - generic [ref=e29]:
+        - paragraph [ref=e30]: Time Range
+        - generic [ref=e31]:
+          - button "Morning 6 AM - 12 PM" [ref=e32]:
+            - generic [ref=e33]: Morning
+            - generic [ref=e34]: 6 AM - 12 PM
+          - button "Afternoon 12 PM - 6 PM" [ref=e35]:
+            - generic [ref=e36]: Afternoon
+            - generic [ref=e37]: 12 PM - 6 PM
+          - button "Evening 6 PM - 12 AM" [ref=e38]:
+            - generic [ref=e39]: Evening
+            - generic [ref=e40]: 6 PM - 12 AM
+          - generic [ref=e41]:
+            - generic [ref=e42]: All Day
+            - generic [ref=e43]: 6 AM - 12 AM
+      - paragraph [ref=e44]: "Examples: Seattle, WA, 94105, 40.7128,-74.0060"
+    - generic [ref=e45]:
+      - heading "Demo Mode" [level=3] [ref=e46]
+      - paragraph [ref=e47]: Using simulated data. Connect Visual Crossing API for live forecasts.
+  - button "Open Next.js Dev Tools" [ref=e53] [cursor=pointer]:
+    - img [ref=e54]
+  - alert [ref=e57]
