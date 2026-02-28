@@ -13,12 +13,12 @@ describe("MeetupControls", () => {
     render(
       <MeetupControls
         config={{ location: "A", day: "fri", window: "afternoon" }}
-        isUpdating={false}
         onApply={onApply}
       />
     );
 
-    await user.click(screen.getByRole("button", { name: "Update Forecast" }));
+    await user.click(screen.getByLabelText("Location"));
+    await user.keyboard("{Enter}");
 
     expect(screen.getByText(/Please enter a real location/i)).toBeInTheDocument();
     expect(onApply).not.toHaveBeenCalled();
@@ -31,14 +31,12 @@ describe("MeetupControls", () => {
     render(
       <MeetupControls
         config={{ location: "Austin, TX", day: "fri", window: "afternoon" }}
-        isUpdating={false}
         onApply={onApply}
       />
     );
 
-    await user.clear(screen.getByLabelText("Event Location"));
-    await user.type(screen.getByLabelText("Event Location"), "Chicago, IL");
-    await user.click(screen.getByRole("button", { name: "Update Forecast" }));
+    await user.clear(screen.getByLabelText("Location"));
+    await user.type(screen.getByLabelText("Location"), "Chicago, IL{Enter}");
 
     expect(onApply).toHaveBeenCalledWith({
       location: "Chicago, IL",

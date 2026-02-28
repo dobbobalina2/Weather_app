@@ -16,6 +16,7 @@ Primary UX goal: compare the selected meetup window for this week vs next week a
 - `location`: freeform text (required, min length 2 after trim)
 - `day`: `sun|mon|tue|wed|thu|fri|sat`
 - `window`: `morning|afternoon|evening`
+- `weekOffset`: integer `0..8` (optional; default `0`) to compare future repeating weeks
 
 ### Internal domain types
 - `MeetupConfig`: organizer selection state.
@@ -25,6 +26,7 @@ Primary UX goal: compare the selected meetup window for this week vs next week a
 
 ### Normalization rules
 - All external payload parsing must go through `normalizeTimelinePayload` in `lib/visualCrossing.ts`.
+- Visual Crossing requests should include decision-critical elements: `feelslikemax`, `feelslikemin`, `snow`, `snowdepth`, `sunrise`, `sunset` (alongside existing temp/rain/wind fields).
 - Null numeric fields are normalized to `0` (prototype behavior).
 - Hour labels are converted to human-readable `h:mm AM/PM` strings.
 - Missing hourly data sets `hasHourly=false`; UI uses daily fallback messaging.
@@ -45,12 +47,17 @@ Recommendation levels: `proceed`, `caution`, `cancel`.
 ### Cancel
 - Wind peak >= 25 mph, or
 - Rain probability >= 70% with precip amount >= 0.1 in, or
-- Temperature <= 35F or >= 95F.
+- Temperature <= 35F or >= 95F, or
+- Feels-like <= 32F or >= 100F, or
+- Snow >= 0.5 in or snow depth >= 2 in.
 
 ### Caution
 - Wind peak >= 18 mph, or
 - Rain probability >= 40%, or
-- Temperature outside 45F-85F comfort band.
+- Temperature outside 45F-85F comfort band, or
+- Feels-like outside 40F-90F, or
+- Snow >= 0.1 in or snow depth >= 0.5 in, or
+- Meetup window starts after sunset.
 
 ### Proceed
 - If none of the cancel/caution conditions are met.
@@ -65,7 +72,7 @@ Server route returns typed error payloads:
 
 ## Resilience Practices
 - Use retry only for retriable upstream failures (429/5xx/timeouts/network).
-- Keep previous forecast data in client cache while refetching.
+- On changed meetup params, show loading state for the new request before rendering new comparison cards.
 - Show inline/location-safe validation messages for bad inputs.
 - If hourly slices are missing, continue with daily summary fallback (never crash).
 

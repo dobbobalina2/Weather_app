@@ -1,6 +1,6 @@
 "use client";
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import type { CompareViewModel } from "@/types/weather";
 
@@ -9,14 +9,20 @@ export interface ForecastError {
   message: string;
 }
 
-export function useForecast(params: { location: string; day: string; window: string }) {
+export function useForecast(params: {
+  location: string;
+  day: string;
+  window: string;
+  weekOffset: number;
+}) {
   return useQuery<CompareViewModel, ForecastError>({
     queryKey: ["forecast", params],
     queryFn: async () => {
       const query = new URLSearchParams({
         location: params.location,
         day: params.day,
-        window: params.window
+        window: params.window,
+        weekOffset: String(params.weekOffset)
       });
       const response = await fetch(`/api/forecast?${query.toString()}`);
 
@@ -33,7 +39,6 @@ export function useForecast(params: { location: string; day: string; window: str
       return (await response.json()) as CompareViewModel;
     },
     enabled: params.location.trim().length >= 2,
-    placeholderData: keepPreviousData,
     retry: false
   });
 }

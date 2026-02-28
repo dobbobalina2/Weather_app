@@ -2,40 +2,39 @@
 
 import { useMemo } from "react";
 import {
-  Area,
-  AreaChart,
   CartesianGrid,
+  ComposedChart,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis
 } from "recharts";
 
-import type { ForecastHour } from "@/types/weather";
+import type { DailyFallback, ForecastHour } from "@/types/weather";
 
 interface Props {
   hours: ForecastHour[];
   accent: "green" | "blue";
+  dailyFallback?: DailyFallback;
 }
 
 const accentColor = {
   green: {
-    dot: "#94e4c4",
-    rain: "#7aa9e3",
+    titleDot: "#94e4c4",
     temp: "#ef959d",
-    area: "#7aa9e3"
+    rain: "#7aa9e3",
+    precip: "#35bb78"
   },
   blue: {
-    dot: "#79aee8",
-    rain: "#7aa9e3",
+    titleDot: "#79aee8",
     temp: "#ef959d",
-    area: "#7aa9e3"
+    rain: "#7aa9e3",
+    precip: "#35bb78"
   }
 } as const;
 
-export function ForecastChart({ hours, accent }: Props) {
+export function ForecastChart({ hours, accent, dailyFallback }: Props) {
   const palette = accentColor[accent];
 
   const data = useMemo(
@@ -51,77 +50,121 @@ export function ForecastChart({ hours, accent }: Props) {
 
   if (hours.length === 0) {
     return (
-      <div className="chart-shell">
-        <p className="rounded-2xl bg-white/55 px-4 py-4 text-sm font-semibold text-[#596179]">
-          Hourly details unavailable for this window. Using daily summary fallback.
-        </p>
-      </div>
+      <section className="chart-shell">
+        <div className="rounded-2xl border border-[#2f364333] px-3 py-3 text-[#42506a]">
+          <p className="text-sm font-extrabold uppercase tracking-[0.06em]">Daily summary fallback</p>
+          {dailyFallback ? (
+            <div className="mt-2 grid gap-2 text-sm font-semibold md:grid-cols-2">
+              <p>Temp {Math.round(dailyFallback.tempMinF)}-{Math.round(dailyFallback.tempMaxF)}F</p>
+              <p>Rain {Math.round(dailyFallback.precipProb)}% ({dailyFallback.precipIn.toFixed(1)}")</p>
+              <p>Wind {Math.round(dailyFallback.windMph)} mph</p>
+              <p className="truncate">{dailyFallback.conditions}</p>
+            </div>
+          ) : (
+            <p className="mt-2 text-sm font-semibold">Hourly data unavailable for this window.</p>
+          )}
+        </div>
+      </section>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <section className="chart-shell">
-        <ChartTitle color={palette.dot} label="Temperature & Rain Probability" />
-        <div className="chart-box">
-          <ResponsiveContainer height={250} width="100%">
-            <LineChart data={data} margin={{ top: 6, right: 10, bottom: 0, left: 0 }}>
-              <CartesianGrid stroke="#cad0d6" strokeDasharray="4 4" />
-              <XAxis dataKey="time" tick={{ fill: "#616973", fontSize: 22 }} />
-              <YAxis tick={{ fill: "#616973", fontSize: 22 }} width={52} />
-              <Tooltip
-                contentStyle={{
-                  background: "#f7f8fa",
-                  border: "1px solid #d7dce2",
-                  borderRadius: 12,
-                  color: "#2c3243",
-                  fontSize: 14
-                }}
-              />
-              <Line dataKey="temp" dot={{ r: 7 }} stroke={palette.temp} strokeWidth={5} type="monotone" />
-              <Line dataKey="rain" dot={{ r: 7 }} stroke={palette.rain} strokeWidth={5} type="monotone" />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </section>
+    <section className="chart-shell">
+      <div className="hidden md:block">
+        <ChartTitle color={palette.titleDot} label="Weather Trend" />
+      </div>
 
-      <section className="chart-shell">
-        <ChartTitle color="#f6cb98" label="Precipitation Amount" />
-        <div className="chart-box">
-          <ResponsiveContainer height={230} width="100%">
-            <AreaChart data={data} margin={{ top: 6, right: 10, bottom: 0, left: 0 }}>
-              <CartesianGrid stroke="#cad0d6" strokeDasharray="4 4" />
-              <XAxis dataKey="time" tick={{ fill: "#616973", fontSize: 22 }} />
-              <YAxis tick={{ fill: "#616973", fontSize: 22 }} width={64} />
-              <Tooltip
-                formatter={(value: number | string | undefined) => `${value ?? 0}"`}
-                contentStyle={{
-                  background: "#f7f8fa",
-                  border: "1px solid #d7dce2",
-                  borderRadius: 12,
-                  color: "#2c3243",
-                  fontSize: 14
-                }}
-              />
-              <Area
-                dataKey="precip"
-                fill="rgba(122, 169, 227, 0.28)"
-                stroke={palette.area}
-                strokeWidth={4}
-                type="monotone"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </section>
+      <div className="mb-2 hidden flex-wrap items-center gap-3 text-[12px] font-bold text-[#3a465f] md:flex md:text-[13px]">
+        <LegendChip color={palette.temp} label="Temperature (F)" />
+        <LegendChip color={palette.rain} label="Rain Probability (%)" />
+        <LegendChip color={palette.precip} label="Precipitation (in)" />
+      </div>
+
+      <div className="chart-box h-[230px] md:h-[185px]">
+        <ResponsiveContainer height="100%" width="100%">
+          <ComposedChart data={data} margin={{ top: 6, right: 12, bottom: 0, left: 0 }}>
+            <CartesianGrid stroke="#cad0d6" strokeDasharray="4 4" />
+            <XAxis dataKey="time" tick={{ fill: "#616973", fontSize: 10 }} />
+            <YAxis
+              yAxisId="left"
+              tick={{ fill: "#616973", fontSize: 10 }}
+              width={30}
+              tickFormatter={(value) => `${value}`}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              tick={{ fill: "#616973", fontSize: 10 }}
+              width={38}
+              tickFormatter={(value) => `${value}`}
+            />
+            <Tooltip
+              formatter={(value, name) => {
+                const label = String(name ?? "");
+                if (label === "Temperature (F)") {
+                  return [`${value ?? 0} F`, label] as [string, string];
+                }
+                if (label === "Rain Probability (%)") {
+                  return [`${value ?? 0}%`, label] as [string, string];
+                }
+
+                return [`${value ?? 0}\"`, label] as [string, string];
+              }}
+              contentStyle={{
+                background: "#f7f8fa",
+                border: "1px solid #d7dce2",
+                borderRadius: 12,
+                color: "#2c3243",
+                fontSize: 13
+              }}
+            />
+            <Line
+              yAxisId="left"
+              dataKey="temp"
+              name="Temperature (F)"
+              dot={false}
+              stroke={palette.temp}
+              strokeWidth={2.8}
+              type="monotone"
+            />
+            <Line
+              yAxisId="left"
+              dataKey="rain"
+              name="Rain Probability (%)"
+              dot={false}
+              stroke={palette.rain}
+              strokeWidth={2.8}
+              type="monotone"
+            />
+            <Line
+              yAxisId="right"
+              dataKey="precip"
+              name="Precipitation (in)"
+              dot={false}
+              stroke={palette.precip}
+              strokeWidth={2.8}
+              type="monotone"
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+    </section>
+  );
+}
+
+function LegendChip({ color, label }: { color: string; label: string }) {
+  return (
+    <div className="inline-flex items-center gap-2">
+      <span className="h-3 w-3 rounded-full" style={{ background: color }} />
+      <span>{label}</span>
     </div>
   );
 }
 
 function ChartTitle({ label, color }: { label: string; color: string }) {
   return (
-    <div className="mb-4 flex items-center gap-3 text-[40px] font-extrabold text-[#2f3b53]">
-      <span className="h-6 w-6 rounded-full shadow-[0_3px_8px_rgba(73,88,113,0.2)]" style={{ background: color }} />
+    <div className="mb-2 flex items-center gap-2 text-[16px] font-extrabold text-[#2f3b53] md:text-[18px]">
+      <span className="h-4 w-4 rounded-full shadow-[0_3px_8px_rgba(73,88,113,0.2)]" style={{ background: color }} />
       <span>{label}</span>
     </div>
   );

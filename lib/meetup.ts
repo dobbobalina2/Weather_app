@@ -11,7 +11,10 @@ function buildOccurrenceSlice(
 ): OccurrenceSlice {
   const hours = collectWindowHours(source.days, window.startEpoch, window.endEpoch);
   const fallback = source.days.find((day) => day.date === window.date)?.fallback;
-  const metrics = deriveOccurrenceMetrics(hours, fallback);
+  const metrics = deriveOccurrenceMetrics(hours, fallback, {
+    startEpoch: window.startEpoch,
+    timezone
+  });
   const decision = deriveDecision(metrics);
   const summary = deriveGenericMessage(decision, metrics);
 

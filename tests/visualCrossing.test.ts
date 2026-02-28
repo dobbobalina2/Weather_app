@@ -12,9 +12,15 @@ describe("normalizeTimelinePayload", () => {
           datetime: "2026-03-06",
           tempmin: 55,
           tempmax: 75,
+          feelslikemin: 52,
+          feelslikemax: 77,
           precip: 0.1,
           precipprob: 50,
+          snow: 0.2,
+          snowdepth: 0.4,
           windspeed: 12,
+          sunrise: "06:41:00",
+          sunset: "18:22:00",
           conditions: "Partially cloudy",
           hours: [
             {
@@ -34,6 +40,9 @@ describe("normalizeTimelinePayload", () => {
 
     expect(payload.hasHourly).toBe(true);
     expect(payload.days[0].hours[0].timeLabel).toBe("2:00 PM");
+    expect(payload.days[0].fallback.feelsLikeMaxF).toBe(77);
+    expect(payload.days[0].fallback.snowIn).toBe(0.2);
+    expect(payload.days[0].fallback.sunrise).toBe("06:41:00");
   });
 
   it("falls back when no hourly data exists", () => {

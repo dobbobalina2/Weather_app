@@ -39,6 +39,14 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
+input#location-input:-webkit-autofill,
+input#location-input:-webkit-autofill:hover,
+input#location-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #364058;
+  -webkit-box-shadow: 0 0 0 1000px transparent inset;
+  transition: background-color 9999s ease-out 0s;
+}
+
 .card {
   border-radius: 30px;
   border: 1px solid rgba(255, 255, 255, 0.7);
@@ -53,12 +61,12 @@ select:focus-visible {
 
 .chart-shell {
   border-radius: 26px;
-  background: rgba(255, 255, 255, 0.4);
+  background: transparent;
   padding: 18px;
 }
 
 .chart-box {
   border-radius: 20px;
-  background: #eef2f4;
+  background: transparent;
   padding: 14px;
 }

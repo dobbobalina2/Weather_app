@@ -39,8 +39,16 @@ export default function MeetupClientPage() {
     () => configFromQuery(new URLSearchParams(searchParamsString)),
     [searchParamsString]
   );
+  const initialWeekOffset = useMemo(() => {
+    const value = Number(searchParams.get("weekOffset") ?? "0");
+    if (Number.isNaN(value)) {
+      return 0;
+    }
+    return Math.min(8, Math.max(0, Math.trunc(value)));
+  }, [searchParams]);
 
   const [config, setConfig] = useState<MeetupConfig>(() => resolvedInitial);
+  const [weekOffset, setWeekOffset] = useState<number>(() => initialWeekOffset);
 
   useEffect(() => {
     setConfig((previousConfig) => {
@@ -54,30 +62,43 @@ export default function MeetupClientPage() {
 
       return resolvedInitial;
     });
-  }, [resolvedInitial]);
+    setWeekOffset(initialWeekOffset);
+  }, [resolvedInitial, initialWeekOffset]);
 
-  const query = useForecast(config);
+  const query = useForecast({ ...config, weekOffset });
 
   const applyConfig = (nextConfig: MeetupConfig) => {
     setConfig(nextConfig);
     const params = new URLSearchParams({
       location: nextConfig.location,
       day: nextConfig.day,
-      window: nextConfig.window
+      window: nextConfig.window,
+      weekOffset: String(weekOffset)
+    });
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const changeWeekOffset = (nextOffset: number) => {
+    setWeekOffset(nextOffset);
+    const params = new URLSearchParams({
+      location: config.location,
+      day: config.day,
+      window: config.window,
+      weekOffset: String(nextOffset)
     });
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   return (
-    <main className="mx-auto w-full max-w-[1700px] space-y-7 px-4 py-8 md:px-8 md:py-10">
+    <main className="mx-auto w-full max-w-[1400px] space-y-4 px-4 py-4 md:px-8 md:py-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex items-center gap-4 md:gap-6">
-          <div className="flex h-20 w-20 items-center justify-center rounded-[30px] bg-[#9a8bde] text-white shadow-[0_14px_28px_rgba(117,104,189,0.35)] md:h-28 md:w-28">
-            <Cloud className="h-10 w-10 md:h-14 md:w-14" strokeWidth={2.2} />
+          <div className="flex h-14 w-14 items-center justify-center rounded-[20px] bg-[#9a8bde] text-white shadow-[0_10px_20px_rgba(117,104,189,0.35)] md:h-16 md:w-16">
+            <Cloud className="h-7 w-7 md:h-8 md:w-8" strokeWidth={2.2} />
           </div>
           <div>
-            <h1 className="text-5xl font-black tracking-tight text-[#1f2a40] md:text-8xl">Weather Planner</h1>
-            <p className="mt-1 text-[24px] font-bold text-[#4d596f] md:text-[46px]">Compare weekly event conditions</p>
+            <h1 className="text-3xl font-black tracking-tight text-[#1f2a40] md:text-[56px]">Weather Planner</h1>
+            <p className="mt-1 text-[15px] font-bold text-[#4d596f] md:text-[20px]">Compare weekly event conditions</p>
           </div>
         </div>
       </header>
@@ -85,11 +106,11 @@ export default function MeetupClientPage() {
       <MeetupControls
         config={config}
         errorMessage={query.error?.code === "UPSTREAM_BAD_REQUEST" ? query.error.message : undefined}
-        isUpdating={query.isFetching}
         onApply={applyConfig}
       />
 
       {query.isLoading && <LoadingSkeleton />}
+      {query.isFetching && !query.data && !query.isLoading && <LoadingSkeleton />}
 
       {query.error && !query.data && (
         <ErrorState
@@ -100,14 +121,7 @@ export default function MeetupClientPage() {
 
       {query.error && query.data && <ErrorState message={query.error.message} onRetry={() => query.refetch()} />}
 
-      {query.data && <WeekCompare data={query.data} />}
-
-      <section className="rounded-[34px] border border-white/60 bg-[#f7dda0] px-6 py-5 shadow-[0_12px_20px_rgba(31,42,63,0.1)] md:px-8 md:py-7">
-        <h3 className="text-[36px] font-extrabold text-[#26344b] md:text-[42px]">Demo Mode</h3>
-        <p className="mt-2 text-[28px] font-bold text-[#344059] md:text-[35px]">
-          Using simulated data. Connect Visual Crossing API for live forecasts.
-        </p>
-      </section>
+      {query.data && <WeekCompare data={query.data} weekOffset={weekOffset} onChangeWeekOffset={changeWeekOffset} />}
     </main>
   );
 }

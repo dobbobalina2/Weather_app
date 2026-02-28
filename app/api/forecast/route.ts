@@ -9,7 +9,8 @@ import type { ApiErrorPayload, MeetupConfig, NormalizedForecast } from "@/types/
 const querySchema = z.object({
   location: z.string().trim().min(2, "Location must be at least 2 characters."),
   day: z.enum(["sun", "mon", "tue", "wed", "thu", "fri", "sat"]),
-  window: z.enum(["morning", "afternoon", "evening"])
+  window: z.enum(["morning", "afternoon", "evening"]),
+  weekOffset: z.coerce.number().int().min(0).max(8).default(0)
 });
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -17,7 +18,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const parsedQuery = querySchema.safeParse({
       location: request.nextUrl.searchParams.get("location") ?? "",
       day: request.nextUrl.searchParams.get("day") ?? "fri",
-      window: request.nextUrl.searchParams.get("window") ?? "afternoon"
+      window: request.nextUrl.searchParams.get("window") ?? "afternoon",
+      weekOffset: request.nextUrl.searchParams.get("weekOffset") ?? "0"
     });
 
     if (!parsedQuery.success) {
@@ -65,7 +67,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const occurrenceWindows = computeOccurrenceWindows({
       day: config.day,
       window: config.window,
-      timezone: timezoneProbe.timezone
+      timezone: timezoneProbe.timezone,
+      referenceTime: new Date(Date.now() + parsedQuery.data.weekOffset * 7 * 24 * 60 * 60 * 1000)
     });
 
     let forecast = await retryVisualCrossing(() =>

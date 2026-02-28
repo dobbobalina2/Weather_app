@@ -33,9 +33,15 @@ export interface DailyFallback {
   date: string;
   tempMinF: number;
   tempMaxF: number;
+  feelsLikeMinF: number;
+  feelsLikeMaxF: number;
   precipIn: number;
   precipProb: number;
+  snowIn: number;
+  snowDepthIn: number;
   windMph: number;
+  sunrise?: string;
+  sunset?: string;
   conditions: string;
 }
 
@@ -43,11 +49,18 @@ export interface OccurrenceMetrics {
   tempMinF: number;
   tempMaxF: number;
   tempAvgF: number;
+  feelsLikeMinF: number;
+  feelsLikeMaxF: number;
   peakWindMph: number;
   peakWindTime?: string;
   peakPrecipProb: number;
   peakPrecipTime?: string;
   totalPrecipIn: number;
+  snowIn: number;
+  snowDepthIn: number;
+  sunriseLabel?: string;
+  sunsetLabel?: string;
+  startsAfterSunset: boolean;
   sampleCount: number;
 }
 

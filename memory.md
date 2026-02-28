@@ -113,3 +113,41 @@
 - Root cause: UI label text was intentionally changed to `Event Location` to match mockup.
 - Fix: Updated test query to use `Event Location`.
 - Status: Resolved.
+
+### Bug: Recharts Tooltip formatter typing after combined chart refactor
+- Context: Running `npm run build -- --webpack` after merging two charts into one dual-axis chart.
+- Symptom: TypeScript error on tooltip formatter callback due to strict `name` parameter typing.
+- Root cause: Formatter callback used explicit narrow parameter types that did not match Recharts' optional signature.
+- Fix: Removed explicit callback parameter types and normalized label with `String(name ?? "")`.
+- Status: Resolved.
+
+### Bug: Meetup controls tests failed after button label rename
+- Context: Running `npm test` after compact control-bar refactor.
+- Symptom: `tests/meetupControls.test.tsx` could not find submit button name `Update Forecast`.
+- Root cause: UI button label changed to `Update` while tests still asserted old text.
+- Fix: Updated test button queries to use `Update`.
+- Status: Resolved.
+
+### Anti-pattern to avoid
+- After UI text refactors, avoid hard-coded outdated control labels in tests; either update assertions in the same change or use resilient role/name patterns when copy is expected to evolve.
+
+### Warning: Next dev lock conflict while running Playwright iteration
+- Context: Starting a fresh `npm run dev` to capture Playwright screenshots.
+- Symptom: Next reported `.next/dev/lock` already held and aborted startup on fallback port.
+- Root cause: Another `next dev` instance was already running in the project.
+- Fix: Reused the active server on `http://localhost:3000` for screenshot iteration instead of forcing a restart.
+- Status: Resolved.
+
+### Blocker: Vitest worker startup fails due transitive ESM/CJS incompatibility
+- Context: Running `npm test` after adding weather decision support for feels-like/snow/sun events.
+- Symptom: Vitest starts, then every worker fails with `ERR_REQUIRE_ESM` from `html-encoding-sniffer` requiring `@exodus/bytes/encoding-lite.js`.
+- Root cause: Dependency graph module-format mismatch in the current local test runtime (worker bootstrap failure before project tests execute).
+- Status: Unresolved in this pass; full test suite validation blocked.
+- Antipattern: Assuming feature-code regressions when failures occur during worker/bootstrap dependency loading before any app test executes.
+
+### Blocker: Lint script no longer valid with current Next CLI
+- Context: Running `npm run lint` as part of feature validation.
+- Symptom: Script exits with `Invalid project directory provided, no such directory: .../Weather_app/lint`.
+- Root cause: `next lint` is not accepted in the current Next CLI behavior for this project/version combination; the subcommand is treated as a path argument.
+- Status: Unresolved in this pass; lint verification blocked without script/config adjustment.
+- Antipattern: Keeping legacy `next lint` scripts after major Next upgrades without confirming CLI support and command semantics.

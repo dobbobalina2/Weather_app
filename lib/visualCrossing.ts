@@ -20,9 +20,15 @@ const daySchema = z.object({
   datetime: z.string(),
   tempmin: z.number().nullable().optional(),
   tempmax: z.number().nullable().optional(),
+  feelslikemin: z.number().nullable().optional(),
+  feelslikemax: z.number().nullable().optional(),
   precip: z.number().nullable().optional(),
   precipprob: z.number().nullable().optional(),
+  snow: z.number().nullable().optional(),
+  snowdepth: z.number().nullable().optional(),
   windspeed: z.number().nullable().optional(),
+  sunrise: z.string().nullable().optional(),
+  sunset: z.string().nullable().optional(),
   conditions: z.string().nullable().optional(),
   hours: z.array(hourSchema).optional()
 });
@@ -65,7 +71,7 @@ export function buildTimelineUrl(opts: TimelineRequestOptions): string {
     lang: "en",
     include: opts.includeHours ? "days,hours,current" : "days,current",
     elements:
-      "datetime,datetimeEpoch,temp,precip,precipprob,windspeed,humidity,conditions,icon,tempmax,tempmin",
+      "datetime,datetimeEpoch,temp,precip,precipprob,windspeed,humidity,conditions,icon,tempmax,tempmin,feelslikemax,feelslikemin,snow,snowdepth,sunrise,sunset",
     options: "nonulls"
   });
 
@@ -120,9 +126,15 @@ export function normalizeTimelinePayload(raw: unknown): NormalizedForecast {
         date,
         tempMinF: Number((day.tempmin ?? 0).toFixed(1)),
         tempMaxF: Number((day.tempmax ?? 0).toFixed(1)),
+        feelsLikeMinF: Number((day.feelslikemin ?? 0).toFixed(1)),
+        feelsLikeMaxF: Number((day.feelslikemax ?? 0).toFixed(1)),
         precipIn: Number((day.precip ?? 0).toFixed(2)),
         precipProb: Number((day.precipprob ?? 0).toFixed(1)),
+        snowIn: Number((day.snow ?? 0).toFixed(2)),
+        snowDepthIn: Number((day.snowdepth ?? 0).toFixed(2)),
         windMph: Number((day.windspeed ?? 0).toFixed(1)),
+        sunrise: day.sunrise ?? undefined,
+        sunset: day.sunset ?? undefined,
         conditions: day.conditions ?? "No conditions available"
       }
     };
