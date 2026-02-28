@@ -3,6 +3,7 @@ export type DayOfWeek = "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
 export type TimeWindowPreset = "morning" | "afternoon" | "evening";
 
 export type DecisionLevel = "proceed" | "caution" | "cancel";
+export type CompareRecommendationLevel = "proceed" | "caution" | "reschedule";
 
 export interface MeetupConfig {
   location: string;
@@ -69,6 +70,24 @@ export interface DecisionResult {
   reasons: string[];
 }
 
+export interface WeightedRiskScore {
+  total: number;
+  rainRisk: number;
+  windSeverity: number;
+  tempDiscomfort: number;
+  weights: {
+    rainWeight: number;
+    windWeight: number;
+    tempWeight: number;
+  };
+  contributions: {
+    rain: number;
+    wind: number;
+    temp: number;
+  };
+  dominantFactor: "rain" | "wind" | "temp";
+}
+
 export interface OccurrenceSlice {
   label: "thisWeek" | "nextWeek";
   date: string;
@@ -79,7 +98,20 @@ export interface OccurrenceSlice {
   dailyFallback?: DailyFallback;
   metrics: OccurrenceMetrics;
   decision: DecisionResult;
+  weightedRisk: WeightedRiskScore;
   summary: string;
+}
+
+export interface CompareRecommendation {
+  level: CompareRecommendationLevel;
+  label: string;
+  emoji: "🟢" | "🟡" | "🔴";
+  action: "keepThisWeek" | "moveToNextWeek" | "monitor";
+  summary: string;
+  reason: string;
+  thisWeekScore: number;
+  nextWeekScore: number;
+  scoreDelta: number;
 }
 
 export interface CompareViewModel {
@@ -88,6 +120,7 @@ export interface CompareViewModel {
   timezone: string;
   thisOccurrence: OccurrenceSlice;
   nextOccurrence: OccurrenceSlice;
+  recommendation: CompareRecommendation;
   updatedAt: string;
   fallbackMode: boolean;
 }

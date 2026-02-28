@@ -1,5 +1,5 @@
 import { deriveGenericMessage } from "@/lib/messages";
-import { deriveDecision, deriveOccurrenceMetrics } from "@/lib/scoring";
+import { deriveComparisonRecommendation, deriveDecision, deriveOccurrenceMetrics, deriveWeightedRiskScore } from "@/lib/scoring";
 import { collectWindowHours } from "@/lib/visualCrossing";
 import type { CompareViewModel, MeetupConfig, NormalizedForecast, OccurrenceSlice, OccurrenceWindow } from "@/types/weather";
 
@@ -16,6 +16,7 @@ function buildOccurrenceSlice(
     timezone
   });
   const decision = deriveDecision(metrics);
+  const weightedRisk = deriveWeightedRiskScore(metrics);
   const summary = deriveGenericMessage(decision, metrics);
 
   return {
@@ -28,6 +29,7 @@ function buildOccurrenceSlice(
     dailyFallback: hours.length === 0 ? fallback : undefined,
     metrics,
     decision,
+    weightedRisk,
     summary
   };
 }
@@ -50,6 +52,16 @@ export function buildCompareViewModel(args: {
     args.source,
     args.nextWindow
   );
+  const recommendation = deriveComparisonRecommendation({
+    thisWeek: {
+      decision: thisOccurrence.decision,
+      weightedRisk: thisOccurrence.weightedRisk
+    },
+    nextWeek: {
+      decision: nextOccurrence.decision,
+      weightedRisk: nextOccurrence.weightedRisk
+    }
+  });
 
   return {
     config: args.config,
@@ -57,6 +69,7 @@ export function buildCompareViewModel(args: {
     timezone: args.source.timezone,
     thisOccurrence,
     nextOccurrence,
+    recommendation,
     updatedAt: new Date().toISOString(),
     fallbackMode: thisOccurrence.hours.length === 0 || nextOccurrence.hours.length === 0
   };

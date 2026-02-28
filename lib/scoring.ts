@@ -1,6 +1,13 @@
 import { DateTime } from "luxon";
 
-import type { DailyFallback, DecisionResult, ForecastHour, OccurrenceMetrics } from "@/types/weather";
+import type {
+  CompareRecommendation,
+  DailyFallback,
+  DecisionResult,
+  ForecastHour,
+  OccurrenceMetrics,
+  WeightedRiskScore
+} from "@/types/weather";
 import { safeZone } from "@/lib/time";
 
 const THRESHOLDS = {
@@ -26,6 +33,16 @@ const THRESHOLDS = {
     snowDepthIn: 0.5
   }
 } as const;
+
+const SCORE_WEIGHTS = {
+  rainWeight: 0.45,
+  windWeight: 0.25,
+  tempWeight: 0.3
+} as const;
+
+const STRONG_ADVANTAGE_POINTS = 12;
+const LOW_RISK_SCORE = 30;
+const MODERATE_RISK_SCORE = 50;
 
 interface MetricsWindowContext {
   startEpoch: number;
@@ -211,6 +228,143 @@ export function deriveDecision(metrics: OccurrenceMetrics): DecisionResult {
   return { level: "proceed", reasons };
 }
 
+export function deriveWeightedRiskScore(metrics: OccurrenceMetrics): WeightedRiskScore {
+  const rainProbabilityRisk = clamp01(metrics.peakPrecipProb / 100);
+  const rainAmountRisk = clamp01(metrics.totalPrecipIn / 0.3);
+  const rainRisk = roundRisk((rainProbabilityRisk * 0.7 + rainAmountRisk * 0.3) * 100);
+
+  const windSeverity = roundRisk(clamp01(metrics.peakWindMph / THRESHOLDS.cancel.windMph) * 100);
+
+  const coldTemp = clamp01((THRESHOLDS.caution.minTempF - metrics.tempMinF) / 20);
+  const hotTemp = clamp01((metrics.tempMaxF - THRESHOLDS.caution.maxTempF) / 20);
+  const coldFeels = clamp01((THRESHOLDS.caution.minFeelsLikeF - metrics.feelsLikeMinF) / 20);
+  const hotFeels = clamp01((metrics.feelsLikeMaxF - THRESHOLDS.caution.maxFeelsLikeF) / 20);
+  const tempDiscomfort = roundRisk(Math.max(coldTemp, hotTemp, coldFeels, hotFeels) * 100);
+
+  const rainContribution = roundRisk(SCORE_WEIGHTS.rainWeight * rainRisk);
+  const windContribution = roundRisk(SCORE_WEIGHTS.windWeight * windSeverity);
+  const tempContribution = roundRisk(SCORE_WEIGHTS.tempWeight * tempDiscomfort);
+  const total = roundRisk(rainContribution + windContribution + tempContribution);
+
+  const dominantFactor = getDominantFactor({
+    rain: rainContribution,
+    wind: windContribution,
+    temp: tempContribution
+  });
+
+  return {
+    total,
+    rainRisk,
+    windSeverity,
+    tempDiscomfort,
+    weights: {
+      rainWeight: SCORE_WEIGHTS.rainWeight,
+      windWeight: SCORE_WEIGHTS.windWeight,
+      tempWeight: SCORE_WEIGHTS.tempWeight
+    },
+    contributions: {
+      rain: rainContribution,
+      wind: windContribution,
+      temp: tempContribution
+    },
+    dominantFactor
+  };
+}
+
+export function deriveComparisonRecommendation(args: {
+  thisWeek: {
+    decision: DecisionResult;
+    weightedRisk: WeightedRiskScore;
+  };
+  nextWeek: {
+    decision: DecisionResult;
+    weightedRisk: WeightedRiskScore;
+  };
+}): CompareRecommendation {
+  const thisWeekScore = args.thisWeek.weightedRisk.total;
+  const nextWeekScore = args.nextWeek.weightedRisk.total;
+  const scoreDelta = roundRisk(thisWeekScore - nextWeekScore);
+  const nextWeekClearlyBetter = scoreDelta >= STRONG_ADVANTAGE_POINTS;
+  const thisWeekClearlyBetter = scoreDelta <= -STRONG_ADVANTAGE_POINTS;
+
+  const thisWeekSeverity = decisionSeverity(args.thisWeek.decision.level);
+  const nextWeekSeverity = decisionSeverity(args.nextWeek.decision.level);
+
+  if ((thisWeekSeverity > nextWeekSeverity && args.nextWeek.decision.level !== "cancel") || nextWeekClearlyBetter) {
+    return {
+      level: "reschedule",
+      label: "Recommend Reschedule",
+      emoji: "🔴",
+      action: "moveToNextWeek",
+      summary:
+        scoreDelta > 0
+          ? `Move to next week (${scoreDelta.toFixed(1)} points lower risk).`
+          : "Move to next week based on safer weather profile.",
+      reason: `This week is mostly driven by ${factorLabel(args.thisWeek.weightedRisk.dominantFactor)} risk.`,
+      thisWeekScore,
+      nextWeekScore,
+      scoreDelta
+    };
+  }
+
+  if (thisWeekSeverity < nextWeekSeverity && thisWeekScore <= MODERATE_RISK_SCORE) {
+    return {
+      level: "proceed",
+      label: "Proceed",
+      emoji: "🟢",
+      action: "keepThisWeek",
+      summary: "This week remains the better option.",
+      reason: `Risk is primarily ${factorLabel(args.thisWeek.weightedRisk.dominantFactor)}, but still manageable.`,
+      thisWeekScore,
+      nextWeekScore,
+      scoreDelta
+    };
+  }
+
+  if (thisWeekScore <= LOW_RISK_SCORE && !nextWeekClearlyBetter) {
+    return {
+      level: "proceed",
+      label: "Proceed",
+      emoji: "🟢",
+      action: "keepThisWeek",
+      summary: "Proceed this week; conditions look favorable.",
+      reason: `Top risk driver is ${factorLabel(args.thisWeek.weightedRisk.dominantFactor)}, but overall risk is low.`,
+      thisWeekScore,
+      nextWeekScore,
+      scoreDelta
+    };
+  }
+
+  if (thisWeekClearlyBetter && thisWeekScore <= MODERATE_RISK_SCORE) {
+    return {
+      level: "proceed",
+      label: "Proceed",
+      emoji: "🟢",
+      action: "keepThisWeek",
+      summary:
+        scoreDelta < 0
+          ? `Proceed this week (${Math.abs(scoreDelta).toFixed(1)} points lower risk than next week).`
+          : "Proceed this week.",
+      reason: `Next week is more exposed to ${factorLabel(args.nextWeek.weightedRisk.dominantFactor)} risk.`,
+      thisWeekScore,
+      nextWeekScore,
+      scoreDelta
+    };
+  }
+
+  return {
+    level: "caution",
+    label: "Caution",
+    emoji: "🟡",
+    action: "monitor",
+    summary: "Close call between weeks; monitor updates before committing.",
+    reason: `Current week risk is led by ${factorLabel(args.thisWeek.weightedRisk.dominantFactor)} conditions.`,
+    thisWeekScore,
+    nextWeekScore,
+    scoreDelta
+  };
+}
+
 function resolveDayTimeEpoch(date: string | undefined, timeText: string | undefined, timezone: string): number | undefined {
   if (!date || !timeText) {
     return undefined;
@@ -223,4 +377,46 @@ function resolveDayTimeEpoch(date: string | undefined, timeText: string | undefi
   }
 
   return Math.trunc(local.toSeconds());
+}
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
+
+function roundRisk(value: number): number {
+  return Number(value.toFixed(1));
+}
+
+function getDominantFactor(contributions: { rain: number; wind: number; temp: number }): "rain" | "wind" | "temp" {
+  if (contributions.rain >= contributions.wind && contributions.rain >= contributions.temp) {
+    return "rain";
+  }
+
+  if (contributions.wind >= contributions.temp) {
+    return "wind";
+  }
+
+  return "temp";
+}
+
+function decisionSeverity(level: DecisionResult["level"]): number {
+  if (level === "cancel") {
+    return 2;
+  }
+  if (level === "caution") {
+    return 1;
+  }
+
+  return 0;
+}
+
+function factorLabel(factor: WeightedRiskScore["dominantFactor"]): string {
+  if (factor === "rain") {
+    return "rain";
+  }
+  if (factor === "wind") {
+    return "wind";
+  }
+
+  return "temperature";
 }

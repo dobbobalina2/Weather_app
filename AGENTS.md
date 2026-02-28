@@ -62,6 +62,21 @@ Recommendation levels: `proceed`, `caution`, `cancel`.
 ### Proceed
 - If none of the cancel/caution conditions are met.
 
+## Smart Comparison Recommendation
+- In addition to per-week threshold decisions, each occurrence computes a weighted risk score.
+- Weighted score inputs:
+  - `rainRisk` (45%): blend of peak rain probability and total precipitation amount.
+  - `windSeverity` (25%): normalized against cancel wind threshold.
+  - `tempDiscomfort` (30%): normalized distance from caution comfort bounds (including feels-like).
+- Compare recommendation output levels:
+  - `proceed`
+  - `caution`
+  - `reschedule`
+- Compare recommendation should provide:
+  - action (`keepThisWeek`, `moveToNextWeek`, or `monitor`)
+  - score delta between this week and next week
+  - a short explainable reason referencing the dominant risk driver.
+
 ## Error Mapping Conventions
 Server route returns typed error payloads:
 - `INVALID_QUERY` (400)

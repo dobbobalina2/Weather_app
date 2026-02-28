@@ -2,10 +2,12 @@
 
 import { useMemo, useRef, type ReactNode } from "react";
 import {
+  CalendarArrowUp,
   ChevronLeft,
   ChevronRight,
   Cloud,
   CloudRain,
+  Gauge,
   Snowflake,
   Sun,
   Sunrise,
@@ -117,6 +119,7 @@ export function WeekCompare({ data, weekOffset, onChangeWeekOffset }: Props) {
           {data.resolvedAddress}
         </h2>
       </div>
+      <RecommendationBanner data={data} />
 
       <div className="grid grid-cols-[36px_minmax(0,1fr)_36px] items-stretch gap-2 md:hidden">
         <button
@@ -178,6 +181,60 @@ export function WeekCompare({ data, weekOffset, onChangeWeekOffset }: Props) {
         </button>
       </div>
     </section>
+  );
+}
+
+function RecommendationBanner({ data }: { data: CompareViewModel }) {
+  const style = recommendationStyle[data.recommendation.level];
+  const actionLabel =
+    data.recommendation.action === "moveToNextWeek"
+      ? "Action: Move To Next Week"
+      : data.recommendation.action === "keepThisWeek"
+        ? "Action: Keep This Week"
+        : "Action: Monitor Conditions";
+
+  return (
+    <aside
+      className={`rounded-[22px] border-2 px-4 py-4 md:px-5 md:py-5 ${style.wrapper}`}
+      aria-label="Smart recommendation"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="space-y-1">
+          <p className={`text-[11px] font-extrabold uppercase tracking-[0.12em] ${style.kicker}`}>Smart Recommendation Engine</p>
+          <h3 className={`text-xl font-extrabold md:text-3xl ${style.title}`}>
+            {data.recommendation.emoji} {data.recommendation.label}
+          </h3>
+        </div>
+        <span className={`rounded-full border px-3 py-1 text-xs font-extrabold uppercase tracking-[0.08em] ${style.action}`}>
+          <CalendarArrowUp className="mr-1 inline h-3.5 w-3.5" /> {actionLabel}
+        </span>
+      </div>
+
+      <p className={`mt-2 text-sm font-bold md:text-base ${style.body}`}>{data.recommendation.summary}</p>
+      <p className={`mt-1 text-sm font-semibold ${style.body}`}>{data.recommendation.reason}</p>
+
+      <div className="mt-3 grid gap-2 md:grid-cols-2">
+        <ScoreCard
+          label="This Week"
+          score={data.recommendation.thisWeekScore}
+          dominantFactor={data.thisOccurrence.weightedRisk.dominantFactor}
+          decisionLevel={data.thisOccurrence.decision.level}
+          style={style}
+        />
+        <ScoreCard
+          label="Next Week"
+          score={data.recommendation.nextWeekScore}
+          dominantFactor={data.nextOccurrence.weightedRisk.dominantFactor}
+          decisionLevel={data.nextOccurrence.decision.level}
+          style={style}
+        />
+      </div>
+
+      <p className={`mt-3 text-[11px] font-bold uppercase tracking-[0.08em] md:text-xs ${style.kicker}`}>
+        <Gauge className="mr-1 inline h-3.5 w-3.5" />
+        Weighted model: Rain 45% • Wind 25% • Temp 30%
+      </p>
+    </aside>
   );
 }
 
@@ -284,3 +341,80 @@ function shouldShowFeelsLike(metrics: OccurrenceSlice["metrics"]): boolean {
 function shouldShowSnow(metrics: OccurrenceSlice["metrics"]): boolean {
   return metrics.snowIn > 0 || metrics.snowDepthIn > 0;
 }
+
+function ScoreCard({
+  label,
+  score,
+  dominantFactor,
+  decisionLevel,
+  style
+}: {
+  label: string;
+  score: number;
+  dominantFactor: OccurrenceSlice["weightedRisk"]["dominantFactor"];
+  decisionLevel: OccurrenceSlice["decision"]["level"];
+  style: {
+    card: string;
+    body: string;
+    value: string;
+  };
+}) {
+  return (
+    <div className={`rounded-xl border px-3 py-2 ${style.card}`}>
+      <p className={`text-xs font-extrabold uppercase tracking-[0.08em] ${style.body}`}>{label}</p>
+      <p className={`text-lg font-black md:text-2xl ${style.value}`}>Risk Score {score.toFixed(1)}</p>
+      <p className={`text-xs font-semibold uppercase tracking-[0.08em] ${style.body}`}>
+        Driver: {formatDominantFactor(dominantFactor)} • {formatDecisionLevel(decisionLevel)}
+      </p>
+    </div>
+  );
+}
+
+function formatDominantFactor(factor: OccurrenceSlice["weightedRisk"]["dominantFactor"]): string {
+  if (factor === "temp") {
+    return "Temperature";
+  }
+
+  return factor[0].toUpperCase() + factor.slice(1);
+}
+
+function formatDecisionLevel(level: OccurrenceSlice["decision"]["level"]): string {
+  if (level === "cancel") {
+    return "Cancel-level";
+  }
+  if (level === "caution") {
+    return "Caution-level";
+  }
+
+  return "Proceed-level";
+}
+
+const recommendationStyle = {
+  proceed: {
+    wrapper: "border-emerald-700/35 bg-emerald-100/85",
+    kicker: "text-emerald-900",
+    title: "text-emerald-950",
+    body: "text-emerald-900",
+    action: "border-emerald-800/35 bg-emerald-200/70 text-emerald-950",
+    card: "border-emerald-700/25 bg-white/60",
+    value: "text-emerald-950"
+  },
+  caution: {
+    wrapper: "border-amber-700/35 bg-amber-100/85",
+    kicker: "text-amber-900",
+    title: "text-amber-950",
+    body: "text-amber-900",
+    action: "border-amber-800/35 bg-amber-200/70 text-amber-950",
+    card: "border-amber-700/25 bg-white/60",
+    value: "text-amber-950"
+  },
+  reschedule: {
+    wrapper: "border-rose-700/35 bg-rose-100/85",
+    kicker: "text-rose-900",
+    title: "text-rose-950",
+    body: "text-rose-900",
+    action: "border-rose-800/35 bg-rose-200/70 text-rose-950",
+    card: "border-rose-700/25 bg-white/65",
+    value: "text-rose-950"
+  }
+} as const;

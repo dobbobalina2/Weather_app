@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { deriveDecision, deriveOccurrenceMetrics } from "@/lib/scoring";
+import { deriveComparisonRecommendation, deriveDecision, deriveOccurrenceMetrics, deriveWeightedRiskScore } from "@/lib/scoring";
 import type { ForecastHour } from "@/types/weather";
 
 const sampleHours = (partial: Partial<ForecastHour>): ForecastHour[] => [
@@ -90,5 +90,75 @@ describe("deriveDecision", () => {
     expect(metrics.startsAfterSunset).toBe(true);
     expect(decision.level).toBe("caution");
     expect(decision.reasons.join(" ")).toContain("starts after sunset");
+  });
+});
+
+describe("deriveWeightedRiskScore", () => {
+  it("weights rain as the dominant driver in wet windows", () => {
+    const metrics = deriveOccurrenceMetrics(sampleHours({ precipProb: 90, precipAmountIn: 0.25, windMph: 8, tempF: 68 }));
+    const weighted = deriveWeightedRiskScore(metrics);
+
+    expect(weighted.rainRisk).toBeGreaterThan(weighted.windSeverity);
+    expect(weighted.dominantFactor).toBe("rain");
+    expect(weighted.total).toBeGreaterThan(40);
+  });
+
+  it("weights temperature discomfort when cold thresholds are crossed", () => {
+    const metrics = deriveOccurrenceMetrics(sampleHours({ tempF: 34, windMph: 6, precipProb: 5 }), {
+      date: "2026-03-06",
+      tempMinF: 33,
+      tempMaxF: 38,
+      feelsLikeMinF: 27,
+      feelsLikeMaxF: 35,
+      precipIn: 0,
+      precipProb: 5,
+      snowIn: 0,
+      snowDepthIn: 0,
+      windMph: 6,
+      conditions: "Clear"
+    });
+    const weighted = deriveWeightedRiskScore(metrics);
+
+    expect(weighted.tempDiscomfort).toBeGreaterThan(0);
+    expect(weighted.dominantFactor).toBe("temp");
+  });
+});
+
+describe("deriveComparisonRecommendation", () => {
+  it("recommends reschedule when next week is materially safer", () => {
+    const thisWeekMetrics = deriveOccurrenceMetrics(sampleHours({ precipProb: 88, precipAmountIn: 0.35, windMph: 22, tempF: 56 }));
+    const nextWeekMetrics = deriveOccurrenceMetrics(sampleHours({ precipProb: 12, precipAmountIn: 0, windMph: 7, tempF: 72 }));
+    const recommendation = deriveComparisonRecommendation({
+      thisWeek: {
+        decision: deriveDecision(thisWeekMetrics),
+        weightedRisk: deriveWeightedRiskScore(thisWeekMetrics)
+      },
+      nextWeek: {
+        decision: deriveDecision(nextWeekMetrics),
+        weightedRisk: deriveWeightedRiskScore(nextWeekMetrics)
+      }
+    });
+
+    expect(recommendation.level).toBe("reschedule");
+    expect(recommendation.action).toBe("moveToNextWeek");
+    expect(recommendation.thisWeekScore).toBeGreaterThan(recommendation.nextWeekScore);
+  });
+
+  it("recommends proceed when this week is low-risk and stable", () => {
+    const thisWeekMetrics = deriveOccurrenceMetrics(sampleHours({ precipProb: 5, precipAmountIn: 0, windMph: 6, tempF: 71 }));
+    const nextWeekMetrics = deriveOccurrenceMetrics(sampleHours({ precipProb: 35, precipAmountIn: 0.08, windMph: 16, tempF: 60 }));
+    const recommendation = deriveComparisonRecommendation({
+      thisWeek: {
+        decision: deriveDecision(thisWeekMetrics),
+        weightedRisk: deriveWeightedRiskScore(thisWeekMetrics)
+      },
+      nextWeek: {
+        decision: deriveDecision(nextWeekMetrics),
+        weightedRisk: deriveWeightedRiskScore(nextWeekMetrics)
+      }
+    });
+
+    expect(recommendation.level).toBe("proceed");
+    expect(recommendation.action).toBe("keepThisWeek");
   });
 });
